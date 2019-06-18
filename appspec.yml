@@ -2,9 +2,9 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ec2-user/sample-app
+    destination: /home/ec2-user/docker
 permissions:
-  - object: /home/ec2-user/sample-app
+  - object: /home/ec2-user/docker
     owner: root
     group: root
 hooks:
