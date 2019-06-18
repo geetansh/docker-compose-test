@@ -1,0 +1,24 @@
+[submodule "availability-server"]
+	path = availability-server
+	url = git@github.com:sales-acceleration-incorporated/availability-server.git
+[submodule "product-server"]
+	path = product-server
+	url = git@github.com:sales-acceleration-incorporated/product-server.git
+[submodule "invoice-server"]
+	path = invoice-server
+	url = git@github.com:sales-acceleration-incorporated/invoice-server.git
+[submodule "booking-server"]
+	path = booking-server
+	url = git@github.com:sales-acceleration-incorporated/booking-server.git
+[submodule "payment-server"]
+	path = payment-server
+	url = git@github.com:sales-acceleration-incorporated/payment-server.git
+[submodule "admin-panel-frontend"]
+	path = admin-panel-frontend
+	url = git@github.com:sales-acceleration-incorporated/admin-panel-frontend.git
+[submodule "client-ui"]
+	path = client-ui
+	url = git@github.com:sales-acceleration-incorporated/client-ui.git
+[submodule "abandon-cart"]
+	path = abandon-cart
+	url = git@github.com:sales-acceleration-incorporated/abandon-cart.git

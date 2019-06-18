@@ -1,0 +1,221 @@
+version: '2'
+
+services:
+  traefik:
+    image: traefik
+    command: --web --docker --docker.domain=gja.smarter.codes --logLevel=DEBUG
+    ports:
+      - "80:80"
+      - "8000:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev/null:/traefik.toml
+    depends_on:
+      - availability
+      - booking
+      - invoice
+      - payment
+      - product
+
+  mongo:
+    container_name: mongodb
+    image: mongo
+    restart: always
+    ports:
+    - "27017:27017"
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express
+    restart: always
+    ports:
+      - 9999:8081
+    depends_on:
+    - mongo
+
+# availability service
+  availability:
+    container_name: availability
+    image: node
+    restart: always
+    volumes:
+    - ./availability-server:/var/www/node/
+    ports: 
+    - "8088:8080"
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_DATABASE: availability
+      SERVER_PORT: 8080
+    working_dir: /var/www/node/
+    command: bash -c "npm install && npm start"
+    depends_on:
+    - mongo
+    labels:
+      - "traefik.backend=availability"
+      - "traefik.frontend.rule=Host:availability.gja.smarter.codes"
+
+# booking service
+  booking:
+    container_name: booking
+    image: node
+    restart: always
+    volumes:
+    - ./booking-server:/var/www/node/
+    ports: 
+    - "8081:8081"
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_DATABASE: booking
+      SERVER_PORT: 8081
+      AVAILABILITY_SERVER_HOST: http://availability:8080
+      INVOICE_SERVER_HOST: http://invoice:8082
+    working_dir: /var/www/node/
+    command: bash -c "npm install && npm start"
+    depends_on:
+    - mongo
+    - availability
+    labels:
+      - "traefik.backend=booking"
+      - "traefik.frontend.rule=Host:booking.gja.smarter.codes"
+
+
+# invoice service
+  invoice:
+    container_name: invoice
+    image: node
+    restart: always
+    volumes:
+    - ./invoice-server:/var/www/node/
+    ports: 
+    - "8082:8082"
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_DATABASE: invoice
+      SERVER_PORT: 8082
+      AVAILABILITY_SERVER_HOST: http://availability:8080
+      BOOKING_SERVER_HOST: http://booking:8081
+    working_dir: /var/www/node/
+    command: bash -c "npm install && npm start"
+    depends_on:
+    - mongo
+    - availability
+    - booking
+    labels:
+      - "traefik.backend=invoice"
+      - "traefik.frontend.rule=Host:invoice.gja.smarter.codes"
+
+
+# payment service
+  payment:
+    container_name: payment
+    image: node
+    restart: always
+    volumes:
+    - ./payment-server:/var/www/node/
+    ports: 
+    - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      INVOICE_SERVER_HOST: http://invoice:8082
+    working_dir: /var/www/node/
+    command: bash -c "npm install && npm start"
+    depends_on:
+    - mongo
+    - availability
+    - booking
+    - invoice
+    labels:
+      - "traefik.backend=payment"
+      - "traefik.frontend.rule=Host:payment.gja.smarter.codes"
+
+
+# product service
+  product:
+    container_name: product
+    image: node
+    restart: always
+    volumes:
+    - ./product-server:/var/www/node/
+    ports: 
+    - "8084:8084"
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_DATABASE: product
+      SERVER_PORT: 8084
+    working_dir: /var/www/node/
+    command: bash -c "npm install && npm start"
+    depends_on:
+    - mongo
+    - availability
+    - booking
+    - invoice
+    - payment
+    labels:
+      - "traefik.backend=product"
+      - "traefik.frontend.rule=Host:product.gja.smarter.codes"
+
+# abandon cart
+  product:
+    container_name: abandon_cart
+    image: node
+    restart: always
+    volumes:
+    - ./abandon-cart:/var/www/node/
+    environment:
+      INVOICE_SERVER: "http://invoice.gja.smarter.codes/api/v1"
+      MAIL_SERVICE: "gmail"
+      MAIL_ADDRESS: "mail@gmail.com"
+      MAIL_PASSWORD: "pa$$"
+      CONTACT_NUMBER: "+58 1112223344"
+      PURCHASE_URL: "http://client.gja.smarter.codes/invoice"
+      CHECK_INTERVAL_HOURS_TIME: 1
+    working_dir: /var/www/node/
+    command: bash -c "npm install && npm start"
+    depends_on:
+    - invoice
+# client UI
+  client-ui:
+    build: ./client-ui
+    hostname: client-ui
+    image: client-ui
+    environment:
+     REACT_APP_INVOICE_SERVICE_URL: http://invoice.gja.smarter.codes/api/v1
+     REACT_APP_AVAILABILITY_SERVICE_URL: http://booking.gja.smarter.codes/api/v1
+     REACT_APP_PAYMENT_SERVICE_URL: http://payment.gja.smarter.codes/api/v1
+    ports:
+    - "8085:5000"
+    links:
+      - booking
+      - invoice
+    depends_on:
+    - mongo
+    - availability
+    - booking
+    - invoice
+    - payment
+    labels:
+      - "traefik.backend=client-ui"
+      - "traefik.frontend.rule=Host:client.gja.smarter.codes"
+  
+# admin panel
+  admin-panel:
+    container_name: admin-panel
+    image: node
+    restart: always
+    volumes:
+    - ./admin-panel-frontend:/var/www/node/
+    ports: 
+    - "8086:3000"
+    environment:
+      REACT_APP_AVAILABILITY_SERVER_HOST: http://availability.gja.smarter.codes/api/v1
+    working_dir: /var/www/node/
+    command: bash -c "npm install && npm start"
+    depends_on:
+    - availability
+    labels:
+      - "traefik.backend=admin-panel"
+      - "traefik.frontend.rule=Host:admin.gja.smarter.codes"

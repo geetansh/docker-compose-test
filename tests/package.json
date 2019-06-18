@@ -1,0 +1,24 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "integration.js",
+  "scripts": {
+    "build": "babel integration.js -d dist",
+    "start": "npm run build && node dist/integration.js",
+    "e2e": "cd ../client-ui && pwd && cypress run"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "request-promise": "^4.2.4",
+    "tape": "^4.10.2"
+  },
+  "dependencies": {
+    "cypress": "^3.3.1",
+    "request": "^2.88.0"
+  }
+}
