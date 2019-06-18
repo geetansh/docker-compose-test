@@ -6,6 +6,13 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
+if [ -d /home/ec2-user/docker ]; then
+  sudo rm -R /home/ec2-user/docker
+  mkdir /home/ec2-user/docker
+fi
+
+
+
 cd /home/ec2-user/docker;
 
 pwd
