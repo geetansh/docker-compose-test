@@ -9,5 +9,5 @@ permissions:
     group: root
 hooks:
   BeforeInstall:
-    - location: before_install.sh
+    - location: scripts/before_install.sh
       runas: root
