@@ -14,6 +14,10 @@ pwd
 
 ls -l
 
-docker-compose up -d
+
+if [ -d /home/ec2-user/docker ]; then
+  sudo rm -R /home/ec2-user/docker
+  mkdir /home/ec2-user/docker
+fi
 
 
